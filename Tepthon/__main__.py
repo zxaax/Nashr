@@ -1,15 +1,15 @@
-from pyrogram import filters, idle
+from telethon import filters, idle
 from telethon import TelegramClient, events
 from telethon.errors import SessionPasswordNeeded, PhoneNumberInvalid, PhoneCodeInvalid, PhoneCodeExpired
 from telethon.sessions import StringSession
-from pyrogram.types import (
+from telethon.types import (
     Message,
     CallbackQuery,
     ForceReply,
     InlineKeyboardMarkup as Markup, 
     InlineKeyboardButton as Button
 )
-from pyrogram.errors import (
+from telethon.errors import (
     ApiIdInvalid,   
     PasswordHashInvalid,
     UserNotParticipant,
