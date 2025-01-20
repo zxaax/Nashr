@@ -1,7 +1,7 @@
 from pyrogram import filters, idle
 from telethon import TelegramClient, events
-from telethon.errors import SessionPasswordNeeded, PhoneCodeInvalid, PhoneCodeExpired, PhoneNumberInvalid
-from telethon.tl.functions.auth import SendCode, SignIn
+from telethon.errors import SessionPasswordNeeded, PhoneNumberInvalid, PhoneCodeInvalid, PhoneCodeExpired
+from telethon.sessions import StringSession
 from pyrogram.types import (
     Message,
     CallbackQuery,
@@ -10,11 +10,7 @@ from pyrogram.types import (
     InlineKeyboardButton as Button
 )
 from pyrogram.errors import (
-    ApiIdInvalid, 
-    PhoneNumberInvalid, 
-    PhoneCodeInvalid, 
-    PhoneCodeExpired, 
-    SessionPasswordNeeded, 
+    ApiIdInvalid,   
     PasswordHashInvalid,
     UserNotParticipant,
     ChatWriteForbidden,
