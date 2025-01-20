@@ -12,4 +12,4 @@ RUN apt-get -qq update && apt-get -qq install -y git wget ffmpeg mediainfo \
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-CMD ["python3","-m",main"]
+CMD ["python3","-m",__main__.py"]
