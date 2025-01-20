@@ -1,0 +1,9 @@
+flask
+gunicorn
+flask_restful
+pyrogram
+pyrolistener
+asyncio
+datetime
+pytz
+typing
