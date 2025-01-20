@@ -1,5 +1,5 @@
-from telethon import filters, idle
 from telethon import TelegramClient, events
+from telethon import filters, idle
 from telethon.errors import SessionPasswordNeeded, PhoneNumberInvalid, PhoneCodeInvalid, PhoneCodeExpired
 from telethon.sessions import StringSession
 from telethon.types import (
