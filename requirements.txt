@@ -2,7 +2,7 @@ flask
 gunicorn
 flask_restful
 pyrogram
-pyrolistener
+pyro-listener
 asyncio
 datetime
 pytz
