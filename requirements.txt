@@ -1,6 +1,7 @@
 flask
 gunicorn
 flask_restful
+telethon
 pyrogram
 pyro-listener
 asyncio
