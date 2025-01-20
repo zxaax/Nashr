@@ -1,4 +1,4 @@
-from pyrogram import Client, filters, idle
+from pyrogram import filters, idle
 from telethon import TelegramClient, events
 from telethon.errors import SessionPasswordNeeded, PhoneCodeInvalid, PhoneCodeExpired, PhoneNumberInvalid
 from telethon.tl.functions.auth import SendCode, SignIn
