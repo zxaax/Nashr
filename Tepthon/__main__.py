@@ -1,4 +1,7 @@
 from pyrogram import Client, filters, idle
+from telethon import TelegramClient, events
+from telethon.errors import SessionPasswordNeeded, PhoneCodeInvalid, PhoneCodeExpired, PhoneNumberInvalid
+from telethon.tl.functions.auth import SendCode, SignIn
 from pyrogram.types import (
     Message,
     CallbackQuery,
@@ -120,69 +123,89 @@ async def account(_: Client, callback: CallbackQuery):
 @app.on_callback_query(filters.regex(r"^(login|changeAccount)$"))
 async def login(_: Client, callback: CallbackQuery):
     user_id = callback.from_user.id
-    if user_id == owner: pass
-    elif not users[str(user_id)]["vip"]: return await callback.answer("- انتهت مدة الاشتراك الخاصة بك.", show_alert=True)
-    elif (callback.data == "changeAccount" and users[str(user_id)].get("session") is None): return await callback.answer("- لم تقم بالتسجيل بعد.", show_alert=True)
+    if user_id == owner: 
+        pass
+    elif not users[str(user_id)]["vip"]: 
+        return await callback.answer("- انتهت مدة الاشتراك الخاصة بك.", show_alert=True)
+    elif (callback.data == "changeAccount" and users[str(user_id)].get("session") is None): 
+        return await callback.answer("- لم تقم بالتسجيل بعد.", show_alert=True)
+
     await callback.message.delete()
-    try:ask = await listener.listen(
-        from_id=user_id,
-        chat_id=user_id,
-        text="- أرسل رقم الهاتف الخاص بك: \n\n- يمكنك إرسال /cancel لإلغاء التسجيل.",
-        reply_markup=ForceReply(selective=True, placeholder="+9647700000"),
-        timeout=30)
-    except exceptions.TimeOut: return await callback.message.reply(
-        text = "- نفد وقت استلام رقم الهاتف",
-        reply_markup = Markup([[Button("⦗ العودة -", callback_data="account")]])
-    )
-    if ask.text == "/cancel": return await ask.reply("- تم إلغاء العملية.", reply_to_message_id=ask.id)
+    try:
+        ask = await listener.listen(
+            from_id=user_id,
+            chat_id=user_id,
+            text="- أرسل رقم الهاتف الخاص بك: \n\n- يمكنك إرسال /cancel لإلغاء التسجيل.",
+            reply_markup=ForceReply(selective=True, placeholder="+9647700000"),
+            timeout=30
+        )
+    except exceptions.TimeOut:
+        return await callback.message.reply(
+            text="- نفد وقت استلام رقم الهاتف",
+            reply_markup=Markup([[Button("⦗ العودة -", callback_data="account")]])
+        )
+    
+    if ask.text == "/cancel": 
+        return await ask.reply("- تم إلغاء العملية.", reply_to_message_id=ask.id)
+    
     create_task(registration(ask))
-    
-    
+
+
 async def registration(message: Message):
     user_id = message.from_user.id
     _number = message.text
     lmsg = await message.reply(f"- جارٍ تسجيل الدخول إلى حسابك")
     reMarkup = Markup([
         [
-            Button("⦗ إعادة المحاوله ⦘", callback_data="login"),
+            Button("⦗ إعادة المحاولة ⦘", callback_data="login"),
             Button("⦗ العودة ⦘", callback_data="account")
         ]
     ])
-    client = Client(
-        "registration",
-        in_memory = True, 
-        api_id = app.api_id,
-        api_hash = app.api_hash
-    )
-    await client.connect()
-    try: p_code_hash = await client.send_code(_number)
-    except (PhoneNumberInvalid): return await lmsg.edit_text("- رقم الهاتف الذي ادخلته خاطئ" ,reply_markup=reMarkup)
-    try: code = await listener.listen(
-        from_id=user_id,
-        chat_id=user_id,
-        text="- تم إرسال كود إلى خاصك قم بإرساله من فضلك.⁩",
-        timeout=120,
-        reply_markup=ForceReply(selective=True, placeholder="𝙸𝙽 𝚃𝙷𝙸𝚂 𝙵𝙾𝚁𝙼𝚄𝙻𝙰: 1 2 3 4 5 6")
-    )
-    except exceptions.TimeOut: return await lmsg.reply(
-        text="- نفذ وقت استلام الكود.\n- حاول مرة أخرى.", 
-        reply_markup=reMarkup
-    )
-    try: await client.sign_in(_number, p_code_hash.phone_code_hash, code.text.replace(" ", ""))
-    except (PhoneCodeInvalid): return await code.reply("- لقد قمت بإدخال كود خاطئ. \n- حاول مرة أخرى", reply_markup=reMarkup, reply_to_message_id=code.id)
-    except (PhoneCodeExpired): return await code.reply("- الكود الذي ادخلته منتهي الصلاحية. \n- حاول مرة أخرى", reply_markup=reMarkup, reply_to_message_id=code.id)
-    except (SessionPasswordNeeded):
-        try:password = await listener.listen(
+    
+    client = TelegramClient('registration', app.api_id, app.api_hash)
+    await client.start()
+    
+    try:
+        p_code_hash = await client(SendCode(
+            _number,
+            force=True
+        ))
+    except PhoneNumberInvalid:
+        return await lmsg.edit_text("- رقم الهاتف الذي ادخلته خاطئ" ,reply_markup=reMarkup)
+    
+    try:
+        code = await listener.listen(
             from_id=user_id,
             chat_id=user_id,
-            text="- ادخل كلمة مرور التحقق بخطوتين من فضلك.",
-            reply_markup=ForceReply(selective=True, placeholder="- 𝚈𝙾𝚄𝚁 𝙿𝙰𝚂𝚂𝚆𝙾𝚁𝙳: "),
-            timeout=180,
-            reply_to_message_id=code.id
+            text="- تم إرسال كود إلى خاصك قم بإرساله من فضلك.⁩",
+            timeout=120,
+            reply_markup=ForceReply(selective=True, placeholder="𝙸𝙽 𝚃𝙷𝙸𝚂 𝙵𝙾𝚁𝙼𝚄𝙻𝙰: 1 2 3 4 5 6")
         )
-        except exceptions.TimeOut: return await lmsg.reply(
-            text="- نفذ وقت استلام كلمة مرور التحقق بخطوتين.\n- حاول مرة أخرى.",  
+    except exceptions.TimeOut:
+        return await lmsg.reply(
+            text="- نفذ وقت استلام الكود.\n- حاول مرة أخرى.", 
             reply_markup=reMarkup
+        )
+    
+    try:
+        await client(SignIn(phone=_number, phone_code_hash=p_code_hash.phone_code_hash, code=code.text.replace(" ", "")))
+    except PhoneCodeInvalid:
+        return await code.reply("- لقد قمت بإدخال كود خاطئ. \n- حاول مرة أخرى", reply_markup=reMarkup, reply_to_message_id=code.id)
+    except PhoneCodeExpired:
+        return await code.reply("- الكود الذي ادخلته منتهي الصلاحية. \n- حاول مرة أخرى", reply_markup=reMarkup, reply_to_message_id=code.id)
+    except SessionPasswordNeeded:
+        try:
+            password = await listener.listen(
+                from_id=user_id,
+                chat_id=user_id,
+                text="- ادخل كلمة مرور التحقق بخطوتين من فضلك.",
+                reply_markup=ForceReply(selective=True, placeholder="- 𝚈𝙾𝚄𝚁 𝙿𝙰𝚂𝚂𝚆𝙾𝚁𝙳: "),
+                timeout=180,
+                reply_to_message_id=code.id
+            )
+        except exceptions.TimeOut:
+            return await lmsg.reply(
+                text="- نفذ وقت استلام كلمة مرور التحقق بخطوتين.\n- حاول مرة أخرى.",  
         )
         try: await client.check_password(password.text)
         except (PasswordHashInvalid): return await password.reply("- قمت بإدخال كلمة مرور خاطئه.\n- حاول مرة أخرى.", reply_markup=reMarkup)
