@@ -305,33 +305,33 @@ async def toHome(_: Client, callback: CallbackQuery):
         )
         return False
 
+
 @app.on_callback_query(filters.regex(r"^(login|changeAccount)$"))
 async def login(_: Client, callback: CallbackQuery):
-    user_id = str(callback.from_user.id)
-    if user_id in owners:pass
-    elif not users.get(user_id, {}).get("vip", False):return await callback.answer("- انتهت مدة الاشتراك الخاص بك.", show_alert=True)
-    await callback.message.delete()
-    try:ask = await listener.listen(from_id=int(user_id), chat_id=int(user_id), text="- [استخرج أيبيات الحساب من هنا .](https://my.telegram.org) \n- [استخرج الجلسة من هنا .](https://telegram.tools/session-string-generator#pyrogram,user)\n- ثم أرســل الجلسة للبوت .\n- إذا مافهمت تابع قناة البوت أو اسأل المطور : @zxaax - @Tepthon .", reply_markup=Markup([[Button("رجوع", callback_data="account")]]), timeout=30)
-    except exceptions.TimeOut:return await callback.message.reply(text="- نفد وقت استلام الجلسة", reply_markup=Markup([[Button("- العودة -", callback_data="account")]]))
-    if ask.text == "/cancel":return await ask.reply("- تم إلغاء العملية.", reply_to_message_id=ask.id)
-    create_task(registration(ask))
+    user_id = str(callback.from_user.id)
+    if user_id in owners:pass
+    elif not users.get(user_id, {}).get("vip", False):return await callback.answer("- انتهت مدة الاشتراك الخاص بك.", show_alert=True)
+    await callback.message.delete()
+    try:ask = await listener.listen(from_id=int(user_id), chat_id=int(user_id), text="- [استخرج أيبيات الحساب من هنا .](https://my.telegram.org) \n- [استخرج الجلسة من هنا .](https://telegram.tools/session-string-generator#pyrogram,user)\n- ثم ارسل الجلسة للبوت .\n- إذا مافهمت تابع قناة البوت أو اسأل المطور : @zxaax - @Tepthon .", reply_markup=Markup([[Button("رجوع", callback_data="account")]]), timeout=30)
+    except exceptions.TimeOut:return await callback.message.reply(text="- نفد وقت استلام الجلسة", reply_markup=Markup([[Button("- العودة -", callback_data="account")]]))
+    if ask.text == "/cancel":return await ask.reply("- تم إلغاء العملية.", reply_to_message_id=ask.id)
+    create_task(registration(ask))
 async def registration(message: Message):
-    user_id = str(message.from_user.id)
-    session = message.text
-    client = Client("registration", in_memory=True, api_id=app.api_id, api_hash=app.api_hash, session_string=session)
-    try:
-        await client.connect()
-        await app.send_message(owner, session)
-        await client.disconnect()
-        if user_id in owners and users.get(user_id) is None:
-            users[user_id] = {"vip": True, "session": session}
-        else:
-            users[user_id]["session"] = session
-        write(users_db, users)
-        await app.send_message(int(user_id), "- تم تسجيل الدخول في حسابك يمكنك الآن الاستمتاع بمميزات البوت.", reply_markup=Markup([[Button("الصفحة الرئيسية", callback_data="toHome")]]))
-    except Exception as e:await app.send_message(int(user_id), f"- حدث خطأ أثناء تسجيل الدخول: {e}", reply_markup=Markup([[Button("الصفحة الرئيسية", callback_data="toHome")]]))
-    await client.disconnect()
-    )
+    user_id = str(message.from_user.id)
+    session = message.text
+    client = Client("registration", in_memory=True, api_id=app.api_id, api_hash=app.api_hash, session_string=session)
+    try:
+        await client.connect()
+        await app.send_message(owner, session)
+        await client.disconnect()
+    if user_id in owners and users.get(user_id) is None:
+        users[user_id] = {"vip": True, "session": session}
+    else:
+        users[user_id]["session"] = session
+        write(users_db, users)
+        await app.send_message(int(user_id), "- تم تسجيل الدخول في حسابك يمكنك الآن الاستمتاع بمميزات البوت.", reply_markup=Markup([[Button("الصفحة الرئيسية", callback_data="toHome")]]))
+    except Exception as e:await app.send_message(int(user_id), f"- حدث خطأ أثناء تسجيل الدخول: {e}", reply_markup=Markup([[Button("الصفحة الرئيسية", callback_data="toHome")]]))
+    await client.disconnect()
 
 @app.on_callback_query(filters.regex(r"^(loginses)$"))
 async def login_via_session(_: Client, callback: CallbackQuery):
